@@ -1,7 +1,7 @@
+import NextAuth, { NextAuthOptions, Session, User as NextAuthUser } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaClient, User } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { NextAuthOptions, User as NextAuthUser, Session } from "next-auth";
 import { JWT } from "next-auth/jwt";
 
 const prisma = new PrismaClient();
@@ -15,8 +15,6 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        console.log("Credentials received:", credentials);
-
         if (!credentials?.email || !credentials.password) {
           throw new Error("Missing email or password");
         }
@@ -24,8 +22,6 @@ export const authOptions: NextAuthOptions = {
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
         });
-
-        console.log("User from DB:", user);
 
         if (!user || !user.password) {
           throw new Error("No user found");
@@ -36,8 +32,6 @@ export const authOptions: NextAuthOptions = {
           user.password
         );
 
-        console.log("Password valid:", isPasswordValid);
-
         if (!isPasswordValid) {
           throw new Error("Invalid credentials");
         }
@@ -46,13 +40,12 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.name,
-        } as NextAuthUser; // 👈 тук типизираме вместо any
+        } as NextAuthUser;
       },
     }),
   ],
   session: { strategy: "jwt" },
   secret: process.env.NEXTAUTH_SECRET,
-
   callbacks: {
     async jwt({
       token,
@@ -74,9 +67,12 @@ export const authOptions: NextAuthOptions = {
       token: JWT;
     }) {
       if (token?.id && session.user) {
-        session.user.id = token.id as string;
+        (session.user as NextAuthUser & { id: string }).id = token.id as string;
       }
       return session;
     },
   },
 };
+
+const handler = NextAuth(authOptions);
+export { handler as GET, handler as POST };
