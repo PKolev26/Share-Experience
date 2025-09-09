@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { useSettings } from "@/contexts/SettingsContext";
 
-const MapWrapper = dynamic(() => import("../src/components/MapWrapper"), {
+const MapWrapper = dynamic(() => import("@/components/MapWrapper"), {
   ssr: false,
 });
 
