@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import Map, { Marker, NavigationControl, Source, Layer } from "react-map-gl";
+import { useState, useCallback, useRef } from "react";
+import throttle from "lodash.throttle";
+import Map, { Marker, NavigationControl, MapRef } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 export default function MapWrapper() {
+  const mapRef = useRef<MapRef>(null);
+
   const [viewState, setViewState] = useState({
     longitude: 23.3219,
     latitude: 42.6977,
@@ -14,31 +17,51 @@ export default function MapWrapper() {
   });
 
   const [is3D, setIs3D] = useState(false);
+  const [graphicsOn, setGraphicsOn] = useState(false);
+
+  const handleMove = useCallback(
+    throttle((evt: any) => {
+      setViewState(evt.viewState);
+    }, 50),
+    []
+  );
 
   const toggle3D = () => {
+    if (!mapRef.current) return;
+
     if (is3D) {
-      setViewState((prev) => ({
-        ...prev,
-        pitch: 0,
+      mapRef.current.flyTo({
+        center: [viewState.longitude, viewState.latitude],
+        zoom: viewState.zoom,
         bearing: 0,
-      }));
+        pitch: 0,
+        duration: 800,
+      });
     } else {
-      setViewState((prev) => ({
-        ...prev,
-        pitch: 60,
+      mapRef.current.flyTo({
+        center: [viewState.longitude, viewState.latitude],
+        zoom: viewState.zoom < 15 ? 15 : viewState.zoom,
         bearing: -17,
-      }));
+        pitch: 60,
+        duration: 800,
+      });
     }
+
     setIs3D(!is3D);
   };
 
   return (
     <div className="w-screen h-screen relative">
       <Map
+        ref={mapRef}
         {...viewState}
-        onMove={(evt) => setViewState(evt.viewState)}
+        onMove={handleMove}
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
-        mapStyle="mapbox://styles/pkolev26/cmfbm4gua005g01qucmem0odc"
+        mapStyle={
+          graphicsOn
+            ? "mapbox://styles/pkolev26/cmfbm4gua005g01qucmem0odc"
+            : "mapbox://styles/mapbox/streets-v12"
+        }
         style={{ width: "100%", height: "100%" }}
       >
         <Marker longitude={23.3219} latitude={42.6977}>
@@ -46,30 +69,20 @@ export default function MapWrapper() {
         </Marker>
 
         <NavigationControl position="top-left" />
-
-        <Source id="composite" type="vector" url="mapbox://mapbox.mapbox-streets-v8">
-          <Layer
-            id="3d-buildings"
-            source="composite"
-            source-layer="building"
-            filter={["==", "extrude", "true"]}
-            type="fill-extrusion"
-            minzoom={15} 
-            paint={{
-              "fill-extrusion-color": "#aaa",
-              "fill-extrusion-height": ["get", "height"],
-              "fill-extrusion-base": ["get", "min_height"],
-              "fill-extrusion-opacity": 0.6,
-            }}
-          />
-        </Source>
       </Map>
-=
+
       <button
         onClick={toggle3D}
         className="absolute bottom-24 right-4 bg-black text-white px-4 py-2 rounded-md shadow-md"
       >
         {is3D ? "2D" : "3D"}
+      </button>
+
+      <button
+        onClick={() => setGraphicsOn((prev) => !prev)}
+        className="absolute bottom-40 right-4 bg-gray-800 text-white px-4 py-2 rounded-md shadow-md"
+      >
+        {graphicsOn ? "Graphics: ON" : "Graphics: OFF"}
       </button>
     </div>
   );
