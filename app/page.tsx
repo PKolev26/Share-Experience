@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { User, Settings, Home, FileText, Users } from "lucide-react";
 import {
   Dialog,
@@ -18,14 +19,17 @@ const MapWrapper = dynamic(() => import("@/components/MapWrapper"), {
 
 export default function HomePage() {
   const { graphicsOn, setGraphicsOn } = useSettings();
-
+  const router = useRouter();
   return (
     <div className="w-screen h-screen">
       <MapWrapper />
 
-      <button className="absolute top-4 right-4 bg-black text-white rounded-full p-3 shadow-lg">
-        <User size={24} />
-      </button>
+       <button
+      onClick={() => router.push("/login")}
+      className="absolute top-4 right-4 bg-black text-white rounded-full p-3 shadow-lg hover:bg-gray-800 transition"
+    >
+      <User size={24} />
+    </button>
 
       <Dialog>
         <DialogTrigger asChild>
