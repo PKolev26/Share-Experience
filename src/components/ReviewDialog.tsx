@@ -29,7 +29,7 @@ export default function ReviewDialog({
 }: ReviewDialogProps) {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
-  const [friends, setFriends] = useState<string[]>([]); // за бъдещ списък
+  const [friends, setFriends] = useState<string[]>([]); 
 
   const handleSave = () => {
     onSave({ rating, comment, friends });
