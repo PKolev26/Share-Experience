@@ -16,7 +16,6 @@ import type { ViewStateChangeEvent } from "react-map-gl";
 import { useSettings } from "@/contexts/SettingsContext";
 import ReviewDialog from "./ReviewDialog";
 
-// 👇 Shadcn UI Dialog
 import {
   Dialog,
   DialogContent,
@@ -30,7 +29,9 @@ export default function MapWrapper() {
   const [selectedPoi, setSelectedPoi] = useState<Poi | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const mapRef = useRef<MapRef>(null);
-  const { graphicsOn } = useSettings();
+  const { graphicsOn, theme } = useSettings();
+  const [mapStyle, setMapStyle] = useState("mapbox://styles/mapbox/streets-v12");
+  const [interactiveLayers, setInteractiveLayers] = useState<string[]>([]);
 
   const [viewState, setViewState] = useState({
     longitude: 23.3219,
@@ -56,16 +57,152 @@ export default function MapWrapper() {
   );
 
   const handleClick = (event: MapLayerMouseEvent) => {
-    const feature = event.features?.[0];
-    if (feature && feature.properties) {
-      setSelectedPoi({
-        name: feature.properties.name || "Unknown",
-        longitude: event.lngLat.lng,
-        latitude: event.lngLat.lat,
-      });
-    }
+  if (!mapRef.current) return;
+  const map = mapRef.current.getMap();
+
+  const features = map.queryRenderedFeatures(event.point, {
+    layers: interactiveLayers.length > 0 ? interactiveLayers : undefined,
+  });
+
+  if (features.length === 0) return; 
+
+  const feature = features[0];
+  const name =
+    feature.properties?.name ||
+    feature.properties?.["name:en"] ||
+    feature.layer?.id ||
+    "";
+
+  if (!name || name === "Unknown" || name === "Custom point") {
+    return;
+  }
+
+  const poi = {
+    name,
+    longitude: event.lngLat.lng,
+    latitude: event.lngLat.lat,
   };
 
+  setSelectedPoi(null);
+  setTimeout(() => setSelectedPoi(poi), 0);
+};
+
+
+useEffect(() => {
+  if (!mapRef.current) return;
+  const map = mapRef.current.getMap();
+
+  const enhancePOIs = () => {
+    map.getStyle().layers?.forEach((layer) => {
+      if (layer.id.includes("poi")) {
+
+        map.setLayerZoomRange(layer.id, 0, 24);
+
+        if (layer.type === "symbol") {
+          map.setLayoutProperty(layer.id, "text-size", 14); 
+        }
+      }
+    });
+  };
+
+  map.on("styledata", enhancePOIs);
+  enhancePOIs();
+
+  return () => {
+    map.off("styledata", enhancePOIs);
+  };
+}, [mapStyle]);
+
+
+
+  useEffect(() => {
+  if (!mapRef.current) return;
+  const map = mapRef.current.getMap();
+
+  const updateLayers = () => {
+    const poiLayers =
+      map
+        .getStyle()
+        .layers?.filter(
+          (l) =>
+            l.id &&
+            (l.id.includes("poi") ||
+              l.id.includes("place") ||
+              l.id.includes("label"))
+        )
+        .map((l) => l.id) || [];
+
+    setInteractiveLayers(poiLayers);
+  };
+
+  map.on("styledata", updateLayers);
+  updateLayers();
+
+  return () => {
+    map.off("styledata", updateLayers);
+  };
+}, [mapStyle]);
+
+
+
+  useEffect(() => {
+  async function fetchSunTimes() {
+    if (!userLocation) return;
+
+    const res = await fetch(
+      `https://api.sunrise-sunset.org/json?lat=${userLocation.latitude}&lng=${userLocation.longitude}&formatted=0`
+    );
+    const data = await res.json();
+    const sunrise = new Date(data.results.sunrise);
+    const sunset = new Date(data.results.sunset);
+    const now = new Date();
+
+    const isNight = now < sunrise || now > sunset;
+
+    if (theme === "dark" || (theme === "auto" && isNight)) {
+      setMapStyle(
+        graphicsOn
+          ? "mapbox://styles/pkolev26/cmfcv2syg001m01r96t8xhi1q" // Dark + graphics
+          : "mapbox://styles/pkolev26/cmfct7azn007k01s319wlhwug" // Dark no graphics
+      );
+    } else {
+      setMapStyle(
+        graphicsOn
+          ? "mapbox://styles/pkolev26/cmfbm4gua005g01qucmem0odc" // Light + graphics
+          : "mapbox://styles/mapbox/streets-v12" // Light no graphics
+      );
+    }
+  }
+
+  fetchSunTimes();
+}, [userLocation, theme, graphicsOn]); 
+
+useEffect(() => {
+  if (!mapRef.current) return;
+  const map = mapRef.current.getMap();
+
+  map.on("styledata", () => {
+    if (theme === "dark" && !graphicsOn) {
+      if (map.getLayer("building")) {
+        map.setLayoutProperty("building", "visibility", "none");
+      }
+      if (map.getLayer("3d-buildings")) {
+        map.setLayoutProperty("3d-buildings", "visibility", "none");
+      }
+    } else {
+      if (map.getLayer("building")) {
+        map.setLayoutProperty("building", "visibility", "visible");
+      }
+      if (map.getLayer("3d-buildings")) {
+        map.setLayoutProperty("3d-buildings", "visibility", graphicsOn ? "visible" : "none");
+      }
+    }
+  });
+}, [mapStyle, graphicsOn, theme]);
+
+
+
+  
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -131,21 +268,18 @@ export default function MapWrapper() {
 
   return (
     <div className="w-screen h-screen relative">
-      <Map
-        ref={mapRef}
-        {...viewState}
-        onMove={handleMove}
-        onClick={handleClick}
-        mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
-        attributionControl={false}
-        mapStyle={
-          graphicsOn
-            ? "mapbox://styles/pkolev26/cmfbm4gua005g01qucmem0odc"
-            : "mapbox://styles/mapbox/streets-v12"
-        }
-        interactiveLayerIds={["poi-label"]}
-        style={{ width: "100%", height: "100%" }}
-      >
+    <Map
+  ref={mapRef}
+  {...viewState}
+  onMove={handleMove}
+  onClick={handleClick}
+  mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
+  attributionControl={false}
+  mapStyle={mapStyle}
+  interactiveLayerIds={interactiveLayers} 
+  style={{ width: "100%", height: "100%" }}
+>
+
         <AttributionControl compact={true} position="top-left" />
 
         {userLocation && (
@@ -212,8 +346,6 @@ export default function MapWrapper() {
   onClose={() => setIsDialogOpen(false)}
   placeName={selectedPoi?.name || ""}
   onSave={(data) => {
-    console.log("📌 Записано ревю:", data);
-    // тук викаш API-то за запис в базата
   }}
 />
 
