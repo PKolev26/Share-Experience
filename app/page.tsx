@@ -63,21 +63,22 @@ export default function HomePage() {
       </Dialog>
 
       <div className="absolute bottom-0 left-0 right-0 bg-black py-2 flex justify-around items-center shadow-lg">
-        <button className="flex flex-col items-center text-white hover:text-blue-400">
-          <Users size={20} />
-          <span className="text-xs">Friends</span>
-        </button>
+        
+      <button className="flex flex-col items-center flex-1 text-white hover:text-blue-400">
+        <Users size={22} />
+        <span className="text-xs">Friends</span>
+      </button>
 
-        <button className="flex flex-col items-center text-blue-400">
-          <Home size={20} />
-          <span className="text-xs">Home</span>
-        </button>
+      <button className="flex flex-col items-center flex-1 text-blue-500">
+        <Home size={22} />
+        <span className="text-xs">Home</span>
+      </button>
 
-        <button className="flex flex-col items-center text-white hover:text-blue-400">
-          <FileText size={20} />
-          <span className="text-xs">Records</span>
-        </button>
-      </div>
+      <button className="flex flex-col items-center flex-1 text-white hover:text-blue-400">
+        <FileText size={22} />
+        <span className="text-xs">Records</span>
+      </button>
     </div>
-  );
+  </div>
+);
 }
