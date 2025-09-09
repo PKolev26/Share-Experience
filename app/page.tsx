@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { User, Settings } from "lucide-react";
+import { User, Settings, Home, FileText, Users } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -62,15 +62,20 @@ export default function HomePage() {
         </DialogContent>
       </Dialog>
 
-      <div className="absolute bottom-0 left-0 right-0 bg-black py-4 flex justify-around items-center shadow-lg">
-        <button className="bg-white text-black font-semibold px-6 py-2 rounded-md shadow-md">
-          Friends
+      <div className="absolute bottom-0 left-0 right-0 bg-black py-2 flex justify-around items-center shadow-lg">
+        <button className="flex flex-col items-center text-white hover:text-blue-400">
+          <Users size={20} />
+          <span className="text-xs">Friends</span>
         </button>
-        <button className="bg-white text-black font-semibold px-6 py-2 rounded-md shadow-md">
-          Home
+
+        <button className="flex flex-col items-center text-blue-400">
+          <Home size={20} />
+          <span className="text-xs">Home</span>
         </button>
-        <button className="bg-white text-black font-semibold px-6 py-2 rounded-md shadow-md">
-          Records
+
+        <button className="flex flex-col items-center text-white hover:text-blue-400">
+          <FileText size={20} />
+          <span className="text-xs">Records</span>
         </button>
       </div>
     </div>

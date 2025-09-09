@@ -120,3 +120,8 @@
     @apply bg-background text-foreground;
   }
 }
+
+
+.mapboxgl-ctrl-logo {
+  margin-bottom: 60px !important;
+}
