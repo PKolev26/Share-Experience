@@ -49,7 +49,7 @@ export default function FriendsDropdown({
   key={f.id}
   src={f.image}
   alt={f.name}
-  className="w-9 h-9 rounded-full object-cover border border-gray-600"
+  className="w-10 h-10 rounded-full object-cover border border-gray-600"
 />
                 ) : (
                   <div
@@ -80,11 +80,11 @@ export default function FriendsDropdown({
                 <img
   src={friend.image}
   alt={friend.name}
-  className="w-9 h-9 rounded-full object-cover border border-gray-600"
+  className="w-10 h-10 rounded-full object-cover border border-gray-600"
 />
 
               ) : (
-                <div className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-600 bg-gray-700">
+                <div className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-600 bg-gray-700">
                   <User size={18} className="text-gray-300" />
                 </div>
               )}
