@@ -29,7 +29,7 @@ export async function POST(req: Request) {
       { message: "User created", user: { id: user.id, email: user.email } },
       { status: 201 }
     );
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("❌ Error creating user:", err);
     return NextResponse.json({ error: "User already exists" }, { status: 400 });
   }

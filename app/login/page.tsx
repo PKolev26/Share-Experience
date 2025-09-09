@@ -48,7 +48,6 @@ export default function Login() {
         </p>
 
         <div className="space-y-4">
-          {/* Email */}
           <div className="flex items-center border border-gray-700 rounded-lg px-3 py-2 bg-gray-800 focus-within:ring-2 focus-within:ring-blue-600">
             <Mail className="text-gray-400 mr-2" size={18} />
             <input
@@ -60,7 +59,6 @@ export default function Login() {
             />
           </div>
 
-          {/* Password */}
           <div className="flex items-center border border-gray-700 rounded-lg px-3 py-2 bg-gray-800 focus-within:ring-2 focus-within:ring-blue-600">
             <Lock className="text-gray-400 mr-2" size={18} />
             <input

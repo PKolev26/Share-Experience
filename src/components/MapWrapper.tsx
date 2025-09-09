@@ -26,6 +26,7 @@ export default function MapWrapper() {
 
   const [is3D, setIs3D] = useState(false);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleMove = useCallback(
     throttle((evt: ViewStateChangeEvent) => {
       setViewState(evt.viewState);
