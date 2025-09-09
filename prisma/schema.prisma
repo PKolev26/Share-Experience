@@ -13,11 +13,13 @@ model User {
   email     String   @unique
   password  String?
   image     String?
-  places    Place[]
   userFriends UserFriends[] @relation("UserAsUser")
   friendOf    UserFriends[] @relation("UserAsFriend")
+  reviews   Review[]
+  reviewFriends ReviewFriend[] @relation("UserAsReviewFriend") // 👈 тук
   createdAt DateTime @default(now())
 }
+
 model UserFriends {
   userId    String
   friendId  String
@@ -30,15 +32,31 @@ model UserFriends {
 }
 
 
-model Place {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  category    String
-  latitude    Float
-  longitude   Float
-  photos      String[]
-  createdBy   User     @relation(fields: [userId], references: [id])
-  userId      String
-  createdAt   DateTime @default(now())
+model Review {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+
+  rating    Int      @default(0)
+
+  comment   String
+
+  placeId   String
+  placeName String
+  longitude Float
+  latitude  Float
+
+  friends   ReviewFriend[]
+
+  createdAt DateTime @default(now())
 }
+
+model ReviewFriend {
+  id        String  @id @default(cuid())
+  review    Review  @relation(fields: [reviewId], references: [id])
+  reviewId  String
+
+  friend    User    @relation("UserAsReviewFriend", fields: [friendId], references: [id])
+  friendId  String
+}
+
