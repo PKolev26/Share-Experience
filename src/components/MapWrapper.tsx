@@ -1,13 +1,34 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import throttle from "lodash.throttle";
-import Map, { NavigationControl, MapRef, Marker, AttributionControl} from "react-map-gl";
+import Map, {
+  Popup,
+  Marker,
+  NavigationControl,
+  AttributionControl,
+  GeolocateControl,
+  MapRef,
+  MapLayerMouseEvent,
+} from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import type { ViewStateChangeEvent } from "react-map-gl";
 import { useSettings } from "@/contexts/SettingsContext";
+import ReviewDialog from "./ReviewDialog";
+
+// 👇 Shadcn UI Dialog
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+type Poi = { name: string; longitude: number; latitude: number };
 
 export default function MapWrapper() {
+  const [selectedPoi, setSelectedPoi] = useState<Poi | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const mapRef = useRef<MapRef>(null);
   const { graphicsOn } = useSettings();
 
@@ -31,8 +52,19 @@ export default function MapWrapper() {
     throttle((evt: ViewStateChangeEvent) => {
       setViewState(evt.viewState);
     }, 50),
-    []
+    [setViewState]
   );
+
+  const handleClick = (event: MapLayerMouseEvent) => {
+    const feature = event.features?.[0];
+    if (feature && feature.properties) {
+      setSelectedPoi({
+        name: feature.properties.name || "Unknown",
+        longitude: event.lngLat.lng,
+        latitude: event.lngLat.lat,
+      });
+    }
+  };
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -103,6 +135,7 @@ export default function MapWrapper() {
         ref={mapRef}
         {...viewState}
         onMove={handleMove}
+        onClick={handleClick}
         mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
         attributionControl={false}
         mapStyle={
@@ -110,9 +143,11 @@ export default function MapWrapper() {
             ? "mapbox://styles/pkolev26/cmfbm4gua005g01qucmem0odc"
             : "mapbox://styles/mapbox/streets-v12"
         }
+        interactiveLayerIds={["poi-label"]}
         style={{ width: "100%", height: "100%" }}
       >
         <AttributionControl compact={true} position="top-left" />
+
         {userLocation && (
           <Marker
             longitude={userLocation.longitude}
@@ -122,9 +157,26 @@ export default function MapWrapper() {
           </Marker>
         )}
 
+        {selectedPoi && (
+          <Popup
+            longitude={selectedPoi.longitude}
+            latitude={selectedPoi.latitude}
+            onClose={() => setSelectedPoi(null)}
+          >
+            <div className="p-2 text-sm">
+              <h3 className="font-bold">{selectedPoi.name}</h3>
+              <button
+                onClick={() => setIsDialogOpen(true)}
+                className="mt-2 px-3 py-1 bg-blue-600 text-white rounded"
+              >
+                Добави ревю
+              </button>
+            </div>
+          </Popup>
+        )}
+
         <NavigationControl position="top-left" style={{ marginTop: "30px" }} />
       </Map>
-
 
       <button
         onClick={toggle3D}
@@ -154,6 +206,17 @@ export default function MapWrapper() {
           <line x1="18" y1="12" x2="22" y2="12" />
         </svg>
       </button>
+
+      <ReviewDialog
+  isOpen={isDialogOpen}
+  onClose={() => setIsDialogOpen(false)}
+  placeName={selectedPoi?.name || ""}
+  onSave={(data) => {
+    console.log("📌 Записано ревю:", data);
+    // тук викаш API-то за запис в базата
+  }}
+/>
+
     </div>
   );
 }
