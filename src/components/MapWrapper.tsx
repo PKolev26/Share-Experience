@@ -73,7 +73,7 @@ export default function MapWrapper() {
     feature.layer?.id ||
     "";
 
-  if (!name || name === "Unknown" || name === "Custom point") {
+  if (!name || name === "Unknown" || name === "Custom point" || name === "poi-label") {
     return;
   }
 
