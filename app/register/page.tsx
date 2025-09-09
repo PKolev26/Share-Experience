@@ -17,7 +17,6 @@ export default function Register() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
     });
-    console.log("Register:", form);
     router.push("/login");
   };
 
