@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef } from "react";
 import throttle from "lodash.throttle";
 import Map, { Marker, NavigationControl, MapRef } from "react-map-gl";
+import type { ViewStateChangeEvent } from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
 export default function MapWrapper() {
@@ -20,11 +21,11 @@ export default function MapWrapper() {
   const [graphicsOn, setGraphicsOn] = useState(false);
 
   const handleMove = useCallback(
-    throttle((evt: any) => {
-      setViewState(evt.viewState);
-    }, 50),
-    []
-  );
+  throttle((evt: ViewStateChangeEvent) => {
+    setViewState(evt.viewState);
+  }, 50),
+  [setViewState]
+);
 
   const toggle3D = () => {
     if (!mapRef.current) return;

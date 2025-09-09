@@ -28,11 +28,11 @@ export default function MapWrapper() {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleMove = useCallback(
-    throttle((evt: ViewStateChangeEvent) => {
-      setViewState(evt.viewState);
-    }, 50),
-    []
-  );
+  throttle((evt: ViewStateChangeEvent) => {
+    setViewState(evt.viewState);
+  }, 50),
+  [setViewState]
+);
 
   useEffect(() => {
     if (navigator.geolocation) {
