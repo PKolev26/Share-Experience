@@ -19,6 +19,7 @@ const MapWrapper = dynamic(() => import("@/components/MapWrapper"), {
 
 export default function HomePage() {
   const { graphicsOn, setGraphicsOn } = useSettings();
+  const { theme, setTheme } = useSettings();
   const router = useRouter();
   return (
     <div className="w-screen h-screen">
@@ -63,6 +64,49 @@ export default function HomePage() {
               performance on low-end devices.
             </p>
           </div>
+          <div className="mt-4 space-y-2">
+  <span className="font-medium">Map Theme</span>
+  <div className="flex items-center gap-4 mt-2">
+    <label className="flex items-center gap-2 cursor-pointer">
+      <input
+        type="radio"
+        name="theme"
+        value="light"
+        checked={theme === "light"}
+        onChange={() => setTheme("light")}
+        className="accent-black"
+      />
+      Light
+    </label>
+
+    <label className="flex items-center gap-2 cursor-pointer">
+      <input
+        type="radio"
+        name="theme"
+        value="dark"
+        checked={theme === "dark"}
+        onChange={() => setTheme("dark")}
+        className="accent-black"
+      />
+      Dark
+    </label>
+
+    <label className="flex items-center gap-2 cursor-pointer">
+      <input
+        type="radio"
+        name="theme"
+        value="auto"
+        checked={theme === "auto"}
+        onChange={() => setTheme("auto")}
+        className="accent-black"
+      />
+      Auto
+    </label>
+  </div>
+  <p className="text-sm text-gray-500">
+    Choose map theme manually or use <b>Auto</b> to switch by sunrise/sunset.
+  </p>
+</div>
         </DialogContent>
       </Dialog>
 
