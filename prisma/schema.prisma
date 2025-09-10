@@ -41,7 +41,6 @@ model Review {
 
   comment   String
 
-  placeId   String
   placeName String
   longitude Float
   latitude  Float
