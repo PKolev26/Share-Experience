@@ -38,7 +38,6 @@ export default function FriendsDropdown({
     }
   };
 
-  // филтриране по search
   const filteredFriends = friends.filter((friend) =>
     friend.name.toLowerCase().includes(search.toLowerCase())
   );
@@ -75,7 +74,6 @@ export default function FriendsDropdown({
       </DropdownMenuTrigger>
 
       <DropdownMenuContent className="bg-gray-900 border border-gray-700 rounded-lg shadow-lg p-2 text-white w-64">
-        {/* Search box */}
         <input
           type="text"
           placeholder="Търси приятели..."

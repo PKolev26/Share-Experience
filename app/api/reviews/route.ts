@@ -49,3 +49,26 @@ export async function POST(req: Request) {
     );
   }
 }
+
+export async function GET() {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const reviews = await prisma.review.findMany({
+  where: { userId: session.user.id },
+  include: {
+    friends: {
+      include: {
+        friend: true,
+      },
+    },
+  },
+  orderBy: { createdAt: "desc" },
+});
+
+
+  return NextResponse.json(reviews);
+}
