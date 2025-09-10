@@ -15,6 +15,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import type { ViewStateChangeEvent } from "react-map-gl";
 import { useSettings } from "@/contexts/SettingsContext";
 import ReviewDialog from "./ReviewDialog";
+import CustomPopup from "@/components/ui/CustomPopup";
 
 import {
   Dialog,
@@ -24,6 +25,8 @@ import {
 } from "@/components/ui/dialog";
 
 type Poi = { name: string; longitude: number; latitude: number };
+
+
 
 export default function MapWrapper() {
   const [selectedPoi, setSelectedPoi] = useState<Poi | null>(null);
@@ -293,23 +296,14 @@ useEffect(() => {
           </Marker>
         )}
 
-        {selectedPoi && (
-          <Popup
-            longitude={selectedPoi.longitude}
-            latitude={selectedPoi.latitude}
-            onClose={() => setSelectedPoi(null)}
-          >
-            <div className="p-2 text-sm">
-              <h3 className="font-bold">{selectedPoi.name}</h3>
-              <button
-                onClick={() => setIsDialogOpen(true)}
-                className="mt-2 px-3 py-1 bg-blue-600 text-white rounded"
-              >
-                Добави ревю
-              </button>
-            </div>
-          </Popup>
-        )}
+        <CustomPopup
+          mapRef={mapRef}
+          selectedPoi={selectedPoi}
+          setSelectedPoi={setSelectedPoi}
+          setIsDialogOpen={setIsDialogOpen}
+        />
+
+
 
         <NavigationControl position="top-left" style={{ marginTop: "30px" }} />
       </Map>
