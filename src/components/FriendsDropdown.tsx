@@ -28,6 +28,7 @@ export default function FriendsDropdown({
   onChange,
 }: FriendsDropdownProps) {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
   const toggleFriend = (friend: Friend) => {
     if (selectedFriends.some((f) => f.id === friend.id)) {
@@ -36,6 +37,11 @@ export default function FriendsDropdown({
       onChange([...selectedFriends, friend]);
     }
   };
+
+  // филтриране по search
+  const filteredFriends = friends.filter((friend) =>
+    friend.name.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -46,11 +52,11 @@ export default function FriendsDropdown({
               {selectedFriends.map((f) =>
                 f.image ? (
                   <img
-  key={f.id}
-  src={f.image}
-  alt={f.name}
-  className="w-10 h-10 rounded-full object-cover border border-gray-600"
-/>
+                    key={f.id}
+                    src={f.image}
+                    alt={f.name}
+                    className="w-10 h-10 rounded-full object-cover border border-gray-600"
+                  />
                 ) : (
                   <div
                     key={f.id}
@@ -68,9 +74,18 @@ export default function FriendsDropdown({
         </button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className="bg-gray-900 border border-gray-700 rounded-lg shadow-lg p-2 text-white">
-        {friends.length > 0 ? (
-          friends.map((friend) => (
+      <DropdownMenuContent className="bg-gray-900 border border-gray-700 rounded-lg shadow-lg p-2 text-white w-64">
+        {/* Search box */}
+        <input
+          type="text"
+          placeholder="Търси приятели..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full mb-2 px-3 py-2 rounded-md bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
+        />
+
+        {filteredFriends.length > 0 ? (
+          filteredFriends.map((friend) => (
             <DropdownMenuItem
               key={friend.id}
               onClick={() => toggleFriend(friend)}
@@ -78,11 +93,10 @@ export default function FriendsDropdown({
             >
               {friend.image ? (
                 <img
-  src={friend.image}
-  alt={friend.name}
-  className="w-10 h-10 rounded-full object-cover border border-gray-600"
-/>
-
+                  src={friend.image}
+                  alt={friend.name}
+                  className="w-10 h-10 rounded-full object-cover border border-gray-600"
+                />
               ) : (
                 <div className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-600 bg-gray-700">
                   <User size={18} className="text-gray-300" />
@@ -90,12 +104,12 @@ export default function FriendsDropdown({
               )}
               <span>{friend.name}</span>
               {selectedFriends.some((f) => f.id === friend.id) && (
-                <span className="ml-auto text-green-400">✔</span>
+                <img src="/white_tick.png" alt="Selected" className="w-5 h-5 ml-auto" />
               )}
             </DropdownMenuItem>
           ))
         ) : (
-          <p className="text-gray-400 px-3 py-2">Нямаш приятели</p>
+          <p className="text-gray-400 px-3 py-2 text-sm">Няма намерени</p>
         )}
       </DropdownMenuContent>
     </DropdownMenu>

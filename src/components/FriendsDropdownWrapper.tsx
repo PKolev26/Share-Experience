@@ -9,9 +9,16 @@ type Friend = {
   image?: string | null;
 };
 
-export default function FriendsDropdownWrapper() {
+type FriendsDropdownWrapperProps = {
+  selectedFriends: Friend[];
+  onChange: (friends: Friend[]) => void;
+};
+
+export default function FriendsDropdownWrapper({
+  selectedFriends,
+  onChange,
+}: FriendsDropdownWrapperProps) {
   const [friends, setFriends] = useState<Friend[]>([]);
-  const [selectedFriends, setSelectedFriends] = useState<Friend[]>([]);
 
   useEffect(() => {
     const fetchFriends = async () => {
@@ -28,7 +35,7 @@ export default function FriendsDropdownWrapper() {
     <FriendsDropdown
       friends={friends}
       selectedFriends={selectedFriends}
-      onChange={setSelectedFriends}
+      onChange={onChange}
     />
   );
 }

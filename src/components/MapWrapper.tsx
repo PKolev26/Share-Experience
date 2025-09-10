@@ -73,7 +73,9 @@ export default function MapWrapper() {
     feature.layer?.id ||
     "";
 
-  if (!name || name === "Unknown" || name === "Custom point" || name === "poi-label") {
+  if (!name || name === "Unknown" || name === "Custom point" || name === "poi-label"
+    || name === "building" || name === "3d-buildings" || name === "road" || name === "landuse" || name === "water"
+  ) {
     return;
   }
 
@@ -345,9 +347,28 @@ useEffect(() => {
   isOpen={isDialogOpen}
   onClose={() => setIsDialogOpen(false)}
   placeName={selectedPoi?.name || ""}
-  onSave={(data) => {
+  longitude={selectedPoi?.longitude || 0}
+  latitude={selectedPoi?.latitude || 0}
+  onSave={async (data) => {
+    try {
+      const res = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (res.ok) {
+        const saved = await res.json();
+        setIsDialogOpen(false);
+      } else {
+        console.error("❌ Грешка при запис:", await res.json());
+      }
+    } catch (err) {
+      console.error("❌ Network error:", err);
+    }
   }}
 />
+
 
     </div>
   );

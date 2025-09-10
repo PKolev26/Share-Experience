@@ -11,39 +11,44 @@ import {
 import { Star } from "lucide-react";
 import FriendsDropdownWrapper from "./FriendsDropdownWrapper";
 
-<FriendsDropdownWrapper />
-
+type Friend = { id: string; name: string; image?: string | null };
 
 type ReviewDialogProps = {
   isOpen: boolean;
   onClose: () => void;
   placeName: string;
-  onSave: (data: { rating: number; comment: string; friends: string[] }) => void;
+  longitude: number;
+  latitude: number;
+  onSave: (data: {
+    rating: number;
+    comment: string;
+    placeName: string;
+    longitude: number;
+    latitude: number;
+    friends: Friend[];
+  }) => void;
 };
 
 export default function ReviewDialog({
   isOpen,
   onClose,
   placeName,
+  longitude,
+  latitude,
   onSave,
 }: ReviewDialogProps) {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
-  const [friends, setFriends] = useState<string[]>([]); 
-
-  const handleSave = () => {
-    onSave({ rating, comment, friends });
-    setRating(0);
-    setComment("");
-    setFriends([]);
-    onClose();
-  };
+  const [selectedFriends, setSelectedFriends] = useState<Friend[]>([]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-gray-900 text-white max-w-lg">
         <DialogHeader>
-          <DialogTitle>Добави ревю за <span className="text-blue-400">{placeName}</span></DialogTitle>
+          <DialogTitle>
+            Добави ревю за{" "}
+            <span className="text-blue-400">{placeName}</span>
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6 mt-4">
@@ -56,7 +61,9 @@ export default function ReviewDialog({
                   size={28}
                   onClick={() => setRating(star)}
                   className={`cursor-pointer transition ${
-                    rating >= star ? "fill-yellow-400 text-yellow-400" : "text-gray-500"
+                    rating >= star
+                      ? "fill-yellow-400 text-yellow-400"
+                      : "text-gray-500"
                   }`}
                 />
               ))}
@@ -75,16 +82,28 @@ export default function ReviewDialog({
 
           <div>
             <p className="mb-2 text-sm text-gray-400">Friends:</p>
-            <FriendsDropdownWrapper />
+            <FriendsDropdownWrapper
+              selectedFriends={selectedFriends}
+              onChange={setSelectedFriends}
+            />
           </div>
         </div>
 
         <DialogFooter className="mt-6">
           <button
-            onClick={handleSave}
-            className="w-full bg-green-600 hover:bg-green-700 py-2 rounded-lg font-semibold transition"
+            onClick={() =>
+              onSave({
+                rating,
+                comment,
+                placeName,
+                longitude,
+                latitude,
+                friends: selectedFriends,
+              })
+            }
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
           >
-            Save
+            Запази
           </button>
         </DialogFooter>
       </DialogContent>
