@@ -28,6 +28,8 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [friend, setFriend] = useState<{ id: string; name: string; image?: string | null } | null>(null);
   const [input, setInput] = useState("");
+  
+  const [isFriend, setIsFriend] = useState(true);
 
   const router = useRouter();
 
@@ -62,6 +64,26 @@ export default function ChatPage() {
       setInput("");
     }
   };
+
+
+useEffect(() => {
+  const fetchChat = async () => {
+    const res = await fetch(`/api/chat/${friendId}`);
+    if (res.ok) {
+      const data = await res.json();
+      setChatId(data.id);
+      setMessages(data.messages);
+      setIsFriend(data.isFriend);
+      const other = data.users.find(
+  (u: { user: { id: string; name: string; image?: string | null } }) =>
+    u.user.id !== currentUserId
+)?.user;
+
+      setFriend(other || null);
+    }
+  };
+  fetchChat();
+}, [friendId]);
 
   return (
     <div className="flex flex-col h-screen bg-gray-950 text-white">
@@ -118,20 +140,27 @@ export default function ChatPage() {
       </div>
 
 
-      <div className="flex p-2 border-t border-gray-700">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          className="flex-1 px-3 py-2 rounded bg-gray-800 outline-none"
-          placeholder="Type a message..."
-        />
-        <button
-          onClick={sendMessage}
-          className="ml-2 px-4 py-2 bg-green-600 rounded"
-        >
-          Send
-        </button>
-      </div>
+      {isFriend ? (
+  <div className="flex p-2 border-t border-gray-700">
+    <input
+      value={input}
+      onChange={(e) => setInput(e.target.value)}
+      className="flex-1 px-3 py-2 rounded bg-gray-800 outline-none"
+      placeholder="Type a message..."
+    />
+    <button
+      onClick={sendMessage}
+      className="ml-2 px-4 py-2 bg-green-600 rounded"
+    >
+      Send
+    </button>
+  </div>
+) : (
+  <div className="p-4 text-center text-gray-400 italic border-t border-gray-700">
+    You are no longer friends with this user. Add them again to continue chatting.
+  </div>
+)}
+
     </div>
   );
 }

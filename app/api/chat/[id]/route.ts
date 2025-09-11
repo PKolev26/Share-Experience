@@ -5,7 +5,7 @@ import { NextRequest } from "next/server";
 
 const prisma = new PrismaClient();
 
-export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+export async function GET(req: Request, context: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
   const currentUserId = session?.user?.id;
   const { id: friendId } = await context.params;
@@ -14,23 +14,10 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
     return new Response("Unauthorized", { status: 401 });
   }
 
-  const relation = await prisma.userFriends.findFirst({
-    where: {
-      OR: [
-        { userId: currentUserId, friendId },
-        { userId: friendId, friendId: currentUserId },
-      ],
-    },
-  });
-
-  if (!relation) {
-    return new Response("Not friends", { status: 403 });
-  }
-
   let chat = await prisma.chat.findFirst({
     where: {
       users: {
-        some: { userId: currentUserId },
+        some: { userId: { in: [currentUserId, friendId] } },
       },
     },
     include: {
@@ -56,7 +43,19 @@ export async function GET(req: NextRequest, context: { params: Promise<{ id: str
     });
   }
 
-  return Response.json(chat);
+  const relation = await prisma.userFriends.findFirst({
+    where: {
+      OR: [
+        { userId: currentUserId, friendId },
+        { userId: friendId, friendId: currentUserId },
+      ],
+    },
+  });
+
+  return Response.json({
+    ...chat,
+    isFriend: !!relation,
+  });
 }
 
 export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
