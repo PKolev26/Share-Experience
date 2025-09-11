@@ -16,7 +16,12 @@ model User {
   userFriends UserFriends[] @relation("UserAsUser")
   friendOf    UserFriends[] @relation("UserAsFriend")
   reviews   Review[]
-  reviewFriends ReviewFriend[] @relation("UserAsReviewFriend") // 👈 тук
+  reviewFriends ReviewFriend[] @relation("UserAsReviewFriend")
+
+  chatUsers ChatUser[]
+
+  sentMessages Message[] @relation("UserMessages")
+
   createdAt DateTime @default(now())
 }
 
@@ -48,6 +53,7 @@ model Review {
   friends   ReviewFriend[]
 
   createdAt DateTime @default(now())
+  isShared  Boolean  @default(false)
 }
 
 model ReviewFriend {
@@ -59,3 +65,32 @@ model ReviewFriend {
   friendId  String
 }
 
+model Chat {
+  id        String    @id @default(cuid())
+  users     ChatUser[]
+  messages  Message[]
+  updatedAt DateTime  @updatedAt
+  createdAt DateTime  @default(now())
+}
+
+model ChatUser {
+  chatId String
+  userId String
+
+  chat Chat @relation(fields: [chatId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@id([chatId, userId])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  chatId    String
+  senderId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  chat   Chat @relation(fields: [chatId], references: [id])
+
+  sender User @relation("UserMessages", fields: [senderId], references: [id])
+}
