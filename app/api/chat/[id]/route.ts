@@ -1,14 +1,14 @@
 import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { NextRequest } from "next/server";
 
 const prisma = new PrismaClient();
 
-export async function GET(req: Request, context: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
   const currentUserId = session?.user?.id;
-  const { id } = await context.params; 
-  const friendId = id;
+  const { id: friendId } = await context.params;
 
   if (!currentUserId) {
     return new Response("Unauthorized", { status: 401 });
@@ -59,9 +59,10 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
   return Response.json(chat);
 }
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   const session = await getServerSession(authOptions);
   const currentUserId = session?.user?.id;
+  const { id: chatId } = await context.params;
 
   if (!currentUserId) {
     return new Response("Unauthorized", { status: 401 });
@@ -71,7 +72,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   const message = await prisma.message.create({
     data: {
-      chatId: params.id,
+      chatId,
       senderId: currentUserId,
       content,
     },
