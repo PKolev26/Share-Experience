@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { UserPlus, Search, Home, FileText, Users } from "lucide-react";
+import { UserPlus, Search, Home, FileText, Users, Newspaper, MessageCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   Dialog,
@@ -89,12 +89,22 @@ export default function FriendsPage() {
                 </div>
               )}
               <span className="font-medium">{f.name}</span>
+              <button
+  onClick={() => router.push(`/chat/${f.id}`)}
+  className="ml-auto px-3 py-1 bg-blue-600 text-xs rounded hover:bg-blue-500"
+>
+  💬 Chat
+</button>
+
             </div>
+            
           ))
         ) : (
           <p className="text-gray-500 text-sm">Нямаш приятели</p>
         )}
+        
       </div>
+      
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="bg-gray-900 text-white">
@@ -151,11 +161,27 @@ export default function FriendsPage() {
         </button>
 
         <button
+          onClick={() => router.push("/feed")}
+          className="flex flex-col items-center flex-1 text-white hover:text-blue-400"
+        >
+          <Newspaper size={22} />
+          <span className="text-xs">Feed</span>
+        </button>
+
+        <button
           onClick={() => router.push("/")}
           className="flex flex-col items-center flex-1 text-white hover:text-blue-400"
         >
           <Home size={22} />
           <span className="text-xs">Home</span>
+        </button>
+
+        <button
+          onClick={() => router.push("/chat")}
+          className="flex flex-col items-center flex-1 text-white hover:text-blue-400"
+        >
+          <MessageCircle size={22} />
+          <span className="text-xs">Chat</span>
         </button>
 
         <button
