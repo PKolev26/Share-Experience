@@ -22,6 +22,7 @@ export default function FriendsPage() {
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<Friend[]>([]);
   const router = useRouter();
+  const [friendToRemove, setFriendToRemove] = useState<Friend | null>(null);
 
   useEffect(() => {
     const fetchFriends = async () => {
@@ -57,6 +58,19 @@ export default function FriendsPage() {
     }
   };
 
+  const handleRemoveFriend = async () => {
+    if (!friendToRemove) return;
+
+    const res = await fetch(`/api/friends/${friendToRemove.id}`, {
+      method: "DELETE",
+    });
+
+    if (res.ok) {
+      setFriends((prev) => prev.filter((f) => f.id !== friendToRemove.id));
+      setFriendToRemove(null);
+    }
+  };
+
   return (
     <div className="w-screen h-screen bg-gray-950 text-white flex flex-col">
       <div className="flex justify-between items-center p-4 bg-gray-900 border-b border-gray-800">
@@ -84,9 +98,9 @@ export default function FriendsPage() {
                   className="w-10 h-10 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-700">
-                  <Users size={20} />
-                </div>
+                <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
+              <span className="text-sm">{f?.name?.[0] || "?"}</span>
+            </div>
               )}
               <span className="font-medium">{f.name}</span>
               <button
@@ -95,6 +109,12 @@ export default function FriendsPage() {
 >
   💬 Chat
 </button>
+<button
+                onClick={() => setFriendToRemove(f)}
+                className="px-3 py-1 bg-red-600 text-xs rounded hover:bg-red-500"
+              >
+                ❌ Remove
+              </button>
 
             </div>
             
@@ -104,6 +124,41 @@ export default function FriendsPage() {
         )}
         
       </div>
+
+<Dialog open={!!friendToRemove} onOpenChange={() => setFriendToRemove(null)}>
+  <DialogContent className="bg-gray-900 text-white text-center">
+    <DialogHeader>
+      <DialogTitle className="flex items-center justify-center gap-2">
+        ⚠️ Are you sure?
+      </DialogTitle>
+    </DialogHeader>
+
+    <p className="mt-2">
+      Do you really want to remove{" "}
+      <span className="font-bold">{friendToRemove?.name}</span> from your
+      friends?
+    </p>
+    <p className="text-sm text-gray-400 mt-1">
+      This action cannot be undone. All chat history will be deleted, but they will remain visible in your reviews.
+    </p>
+
+    <div className="flex justify-center gap-4 mt-6">
+      <button
+        onClick={() => setFriendToRemove(null)}
+        className="px-5 py-2 rounded bg-gray-600 hover:bg-gray-500"
+      >
+        Cancel
+      </button>
+      <button
+        onClick={handleRemoveFriend}
+        className="px-5 py-2 rounded bg-red-600 hover:bg-red-500"
+      >
+        Remove
+      </button>
+    </div>
+  </DialogContent>
+</Dialog>
+
       
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -129,25 +184,48 @@ export default function FriendsPage() {
           </div>
 
           <div className="space-y-2">
-            {results.length > 0 ? (
-              results.map((f) => (
-                <div
-                  key={f.id}
-                  className="flex items-center justify-between p-2 bg-gray-800 rounded"
-                >
-                  <span>{f.name}</span>
-                  <button
-                    onClick={() => handleAddFriend(f.id)}
-                    className="px-3 py-1 bg-green-600 rounded hover:bg-green-500 transition"
-                  >
-                    Добави
-                  </button>
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-500 text-sm">Няма резултати</p>
-            )}
-          </div>
+  {results.length > 0 ? (
+    results.map((f) => {
+      const isAlreadyFriend = friends.some((fr) => fr.id === f.id);
+
+      return (
+        <div
+          key={f.id}
+          className="flex items-center justify-between p-2 bg-gray-800 rounded"
+        >
+          {f.image ? (
+            <img
+              src={f.image}
+              alt={f.name || "User"}
+              className="w-10 h-10 rounded-full object-cover border border-gray-600"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
+              <span className="text-sm">{f?.name?.[0] || "?"}</span>
+            </div>
+          )}
+
+          <span className="ml-3">{f.name || "Unnamed"}</span>
+
+          <button
+            onClick={() => handleAddFriend(f.id)}
+            disabled={isAlreadyFriend}
+            className={`px-3 py-1 rounded transition ${
+              isAlreadyFriend
+                ? "bg-gray-600 cursor-not-allowed"
+                : "bg-green-600 hover:bg-green-500"
+            }`}
+          >
+            {isAlreadyFriend ? "Добавен" : "Добави"}
+          </button>
+        </div>
+      );
+    })
+  ) : (
+    <p className="text-gray-500 text-sm">Няма резултати</p>
+  )}
+</div>
+
         </DialogContent>
       </Dialog>
 
