@@ -26,9 +26,12 @@ import {
 
 type Poi = { name: string; longitude: number; latitude: number };
 
+type Props = {
+  onLoaded: () => void;
+  forceNoLocation?: boolean;
+};
 
-
-export default function MapWrapper() {
+export default function MapWrapper({ onLoaded, forceNoLocation }: Props) {
   const [selectedPoi, setSelectedPoi] = useState<Poi | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const mapRef = useRef<MapRef>(null);
@@ -56,7 +59,7 @@ export default function MapWrapper() {
     throttle((evt: ViewStateChangeEvent) => {
       setViewState(evt.viewState);
     }, 50),
-    [setViewState]
+    []
   );
 
   const handleClick = (event: MapLayerMouseEvent) => {
@@ -209,31 +212,81 @@ useEffect(() => {
 
   
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          setUserLocation({ latitude, longitude });
+  if (forceNoLocation) {
+    setUserLocation({ latitude: 42.6977, longitude: 23.3219 });
+    setViewState((prev) => ({
+      ...prev,
+      latitude: 42.6977,
+      longitude: 23.3219,
+      zoom: 14,
+    }));
+    onLoaded();
+    return;
+  }
 
-          setViewState((prev) => ({
-            ...prev,
-            latitude,
-            longitude,
-            zoom: 18,
-          }));
+  if (navigator.permissions) {
+    navigator.permissions.query({ name: "geolocation" as PermissionName }).then((res) => {
+      const handleSuccess = (pos: GeolocationPosition) => {
+        const { latitude, longitude } = pos.coords;
+        setUserLocation({ latitude, longitude });
+        setViewState((prev) => ({
+          ...prev,
+          latitude,
+          longitude,
+          zoom: 18,
+        }));
 
-          mapRef.current?.flyTo({
-            center: [longitude, latitude],
-            zoom: 18,
-            duration: 1000,
-          });
-        },
-        (err) => {
-          console.error("Geolocation error:", err);
-        }
-      );
-    }
-  }, []);
+        onLoaded();
+
+        mapRef.current?.flyTo({
+          center: [longitude, latitude],
+          zoom: 18,
+          duration: 1000,
+        });
+      };
+
+      const handleError = () => {
+        const event = new CustomEvent("geolocation-denied");
+        window.dispatchEvent(event);
+      };
+
+      if (res.state === "granted") {
+        navigator.geolocation.getCurrentPosition(handleSuccess, handleError);
+      } else if (res.state === "prompt") {
+        navigator.geolocation.getCurrentPosition(handleSuccess, handleError);
+      } else if (res.state === "denied") {
+        handleError();
+      }
+    });
+  } else {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setUserLocation({ latitude, longitude });
+        setViewState((prev) => ({
+          ...prev,
+          latitude,
+          longitude,
+          zoom: 18,
+        }));
+
+        onLoaded();
+
+        mapRef.current?.flyTo({
+          center: [longitude, latitude],
+          zoom: 18,
+          duration: 1000,
+        });
+      },
+      () => {
+        const event = new CustomEvent("geolocation-denied");
+        window.dispatchEvent(event);
+      }
+    );
+  }
+}, [forceNoLocation, onLoaded]);
+
+
 
   const toggle3D = () => {
     if (!mapRef.current) return;
