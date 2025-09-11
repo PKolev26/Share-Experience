@@ -2,17 +2,25 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { useSettings } from "@/contexts/SettingsContext";
+import type { MapRef } from "react-map-gl";
 
 type Props = {
-  mapRef: any;
+  mapRef: React.RefObject<MapRef | null>;
   selectedPoi: { name: string; longitude: number; latitude: number } | null;
   setSelectedPoi: (poi: null) => void;
   setIsDialogOpen: (v: boolean) => void;
 };
 
-export default function CustomPopup({ mapRef, selectedPoi, setSelectedPoi, setIsDialogOpen }: Props) {
+export default function CustomPopup({
+  mapRef,
+  selectedPoi,
+  setSelectedPoi,
+  setIsDialogOpen,
+}: Props) {
   const { theme } = useSettings();
-  const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
+  const [position, setPosition] = useState<{ x: number; y: number } | null>(
+    null
+  );
 
   useEffect(() => {
     if (!mapRef?.current || !selectedPoi) return;
@@ -24,7 +32,6 @@ export default function CustomPopup({ mapRef, selectedPoi, setSelectedPoi, setIs
     };
 
     updatePosition();
-
     map.on("move", updatePosition);
     map.on("zoom", updatePosition);
 
