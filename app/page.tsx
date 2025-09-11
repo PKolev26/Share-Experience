@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { User, Settings, Home, FileText, Users } from "lucide-react";
+import { User, Settings, Home, FileText, Users, Newspaper, MessageCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -120,11 +120,27 @@ export default function HomePage() {
         </button>
 
         <button
+          onClick={() => router.push("/feed")}
+          className="flex flex-col items-center flex-1 text-white hover:text-blue-400"
+        >
+          <Newspaper size={22} />
+          <span className="text-xs">Feed</span>
+        </button>
+
+        <button
           onClick={() => router.push("/")}
           className="flex flex-col items-center flex-1 text-blue-400"
         >
           <Home size={22} />
           <span className="text-xs">Home</span>
+        </button>
+
+        <button
+          onClick={() => router.push("/chat")}
+          className="flex flex-col items-center flex-1 text-white hover:text-blue-400"
+        >
+          <MessageCircle size={22} />
+          <span className="text-xs">Chat</span>
         </button>
 
         <button
