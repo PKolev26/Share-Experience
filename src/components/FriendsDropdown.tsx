@@ -61,7 +61,7 @@ export default function FriendsDropdown({
                     key={f.id}
                     className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-700 bg-gray-700"
                   >
-                    <User size={20} className="text-gray-300" />
+                   <span className="text-sm">{f?.name?.[0] || "?"}</span>
                   </div>
                 )
               )}
@@ -97,7 +97,7 @@ export default function FriendsDropdown({
                 />
               ) : (
                 <div className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-600 bg-gray-700">
-                  <User size={18} className="text-gray-300" />
+                   <span className="text-sm">{friend?.name?.[0] || "?"}</span>
                 </div>
               )}
               <span>{friend.name}</span>

@@ -113,9 +113,9 @@ export default function ReviewsPage() {
                           className="w-10 h-10 rounded-full object-cover border border-gray-600"
                         />
                       ) : (
-                        <div className="w-10 h-10 flex items-center justify-center rounded-full border border-gray-600 bg-gray-700">
-                          <User size={18} className="text-gray-300" />
-                        </div>
+                        <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
+              <span className="text-sm">{friend?.name?.[0] || "?"}</span>
+            </div>
                       )}
                       <span className="absolute bottom-[-28px] left-1/2 -translate-x-1/2 text-xs bg-black text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition">
                         {friend.name}

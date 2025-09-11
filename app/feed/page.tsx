@@ -49,8 +49,8 @@ export default function FeedPage() {
       className="w-10 h-10 rounded-full object-cover"
     />
   ) : (
-    <div className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-700">
-      <User size={20} />
+    <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
+              <span className="text-sm">{post.user?.name?.[0] || "?"}</span>
     </div>
   )}
   <div>
