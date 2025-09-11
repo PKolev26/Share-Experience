@@ -12,6 +12,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useSettings } from "@/contexts/SettingsContext";
+import { useState } from "react";
+import { useEffect } from "react";
 
 const MapWrapper = dynamic(() => import("@/components/MapWrapper"), {
   ssr: false,
@@ -20,10 +22,44 @@ const MapWrapper = dynamic(() => import("@/components/MapWrapper"), {
 export default function HomePage() {
   const { graphicsOn, setGraphicsOn } = useSettings();
   const { theme, setTheme } = useSettings();
+  const [loading, setLoading] = useState(true);
+  const [showFallback, setShowFallback] = useState(false);
+  const [forceNoLocation, setForceNoLocation] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+  const handler = () => setShowFallback(true);
+  window.addEventListener("geolocation-denied", handler);
+  return () => window.removeEventListener("geolocation-denied", handler);
+}, []);
+  
   return (
-    <div className="w-screen h-screen">
-      <MapWrapper />
+    <div className="w-screen h-screen relative">
+      {loading && (
+  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black text-white z-50 px-6">
+    <div className="animate-spin h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full mb-4" />
+    <p className="text-lg font-medium mb-2">Waiting for location...</p>
+
+    {showFallback && (
+      <p className="text-xs text-gray-400 text-center">
+        If location access is denied, some features may be limited. <br />
+        <button
+          onClick={() => {
+            setLoading(false);
+            setForceNoLocation(true);
+          }}
+          className="underline text-gray-500 hover:text-gray-300 mt-1"
+        >
+          Continue without location
+        </button>
+      </p>
+    )}
+  </div>
+)}
+
+
+
+      <MapWrapper onLoaded={() => setLoading(false)} />
 
        <button
       onClick={() => router.push("/login")}
