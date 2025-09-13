@@ -16,15 +16,17 @@ export async function GET(req: Request, context: { params: Promise<{ id: string 
 
   let chat = await prisma.chat.findFirst({
     where: {
-      users: {
-        some: { userId: { in: [currentUserId, friendId] } },
-      },
+      AND: [
+        { users: { some: { userId: currentUserId } } },
+        { users: { some: { userId: friendId } } },
+      ],
     },
     include: {
       users: { include: { user: true } },
       messages: { include: { sender: true }, orderBy: { createdAt: "asc" } },
     },
   });
+
 
   if (!chat) {
     chat = await prisma.chat.create({
