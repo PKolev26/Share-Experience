@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Search, Star, Home, Users, FileText, User, Newspaper, MessageCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Footer from "@/components/ui/Footer";
 
 type Review = {
   id: string;
@@ -147,47 +148,8 @@ export default function ReviewsPage() {
         )}
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 bg-black py-2 flex justify-around items-center shadow-lg">
-        <button
-          onClick={() => router.push("/friends")}
-          className="flex flex-col items-center flex-1 text-white hover:text-blue-400"
-        >
-          <Users size={22} />
-          <span className="text-xs">Friends</span>
-        </button>
-
-        <button
-          onClick={() => router.push("/feed")}
-          className="flex flex-col items-center flex-1 text-white hover:text-blue-400"
-        >
-          <Newspaper size={22} />
-          <span className="text-xs">Feed</span>
-        </button>
-
-        <button
-          onClick={() => router.push("/")}
-          className="flex flex-col items-center flex-1 text-white hover:text-blue-400"
-        >
-          <Home size={22} />
-          <span className="text-xs">Home</span>
-        </button>
-
-        <button
-          onClick={() => router.push("/chat")}
-          className="flex flex-col items-center flex-1 text-white hover:text-blue-400"
-        >
-          <MessageCircle size={22} />
-          <span className="text-xs">Chat</span>
-        </button>
-
-        <button
-          onClick={() => router.push("/reviews")}
-          className="flex flex-col items-center flex-1 text-blue-500"
-        >
-          <FileText size={22} />
-          <span className="text-xs">Reviews</span>
-        </button>
-      </div>
+      <Footer>
+      </Footer>
     </div>
   );
 }

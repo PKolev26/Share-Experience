@@ -14,6 +14,7 @@ import {
 import { useSettings } from "@/contexts/SettingsContext";
 import { useState } from "react";
 import { useEffect } from "react";
+import Footer from "@/components/ui/Footer";
 
 const MapWrapper = dynamic(() => import("@/components/MapWrapper"), {
   ssr: false,
@@ -146,47 +147,8 @@ export default function HomePage() {
         </DialogContent>
       </Dialog>
 
-      <div className="absolute bottom-0 left-0 right-0 bg-black py-2 flex justify-around items-center shadow-lg">
-        <button
-          onClick={() => router.push("/friends")}
-          className="flex flex-col items-center flex-1 text-white hover:text-blue-400"
-        >
-          <Users size={22} />
-          <span className="text-xs">Friends</span>
-        </button>
-
-        <button
-          onClick={() => router.push("/feed")}
-          className="flex flex-col items-center flex-1 text-white hover:text-blue-400"
-        >
-          <Newspaper size={22} />
-          <span className="text-xs">Feed</span>
-        </button>
-
-        <button
-          onClick={() => router.push("/")}
-          className="flex flex-col items-center flex-1 text-blue-400"
-        >
-          <Home size={22} />
-          <span className="text-xs">Home</span>
-        </button>
-
-        <button
-          onClick={() => router.push("/chat")}
-          className="flex flex-col items-center flex-1 text-white hover:text-blue-400"
-        >
-          <MessageCircle size={22} />
-          <span className="text-xs">Chat</span>
-        </button>
-
-        <button
-          onClick={() => router.push("/reviews")}
-          className="flex flex-col items-center flex-1 text-white hover:text-blue-400"
-        >
-          <FileText size={22} />
-          <span className="text-xs">Reviews</span>
-        </button>
-      </div>
+      <Footer>
+      </Footer>
     </div>
   );
 }
