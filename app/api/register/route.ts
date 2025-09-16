@@ -23,7 +23,6 @@ export async function POST(req: Request) {
       },
     });
 
-    console.log("✅ User created:", user);
 
     return NextResponse.json(
       { message: "User created", user: { id: user.id, email: user.email } },

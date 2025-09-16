@@ -1,15 +1,43 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import throttle from "lodash.throttle";
-import Map, { NavigationControl, MapRef, Marker, AttributionControl} from "react-map-gl";
+import Map, {
+  Popup,
+  Marker,
+  NavigationControl,
+  AttributionControl,
+  GeolocateControl,
+  MapRef,
+  MapLayerMouseEvent,
+} from "react-map-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import type { ViewStateChangeEvent } from "react-map-gl";
 import { useSettings } from "@/contexts/SettingsContext";
+import ReviewDialog from "./ReviewDialog";
+import CustomPopup from "@/components/ui/CustomPopup";
 
-export default function MapWrapper() {
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+type Poi = { name: string; longitude: number; latitude: number };
+
+type Props = {
+  onLoaded: () => void;
+  forceNoLocation?: boolean;
+};
+
+export default function MapWrapper({ onLoaded, forceNoLocation }: Props) {
+  const [selectedPoi, setSelectedPoi] = useState<Poi | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const mapRef = useRef<MapRef>(null);
-  const { graphicsOn } = useSettings();
+  const { graphicsOn, theme } = useSettings();
+  const [mapStyle, setMapStyle] = useState("mapbox://styles/mapbox/streets-v12");
+  const [interactiveLayers, setInteractiveLayers] = useState<string[]>([]);
 
   const [viewState, setViewState] = useState({
     longitude: 23.3219,
@@ -34,32 +62,231 @@ export default function MapWrapper() {
   [setViewState]
 );
 
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          setUserLocation({ latitude, longitude });
+  const handleClick = (event: MapLayerMouseEvent) => {
+  if (!mapRef.current) return;
+  const map = mapRef.current.getMap();
 
-          setViewState((prev) => ({
-            ...prev,
-            latitude,
-            longitude,
-            zoom: 18,
-          }));
+  const features = map.queryRenderedFeatures(event.point, {
+    layers: interactiveLayers.length > 0 ? interactiveLayers : undefined,
+  });
 
-          mapRef.current?.flyTo({
-            center: [longitude, latitude],
-            zoom: 18,
-            duration: 1000,
-          });
-        },
-        (err) => {
-          console.error("Geolocation error:", err);
+  if (features.length === 0) return; 
+
+  const feature = features[0];
+  const name =
+    feature.properties?.name ||
+    feature.properties?.["name:en"] ||
+    feature.layer?.id ||
+    "";
+
+  if (!name || name === "Unknown" || name === "Custom point" || name === "poi-label"
+    || name === "building" || name === "3d-buildings" || name === "road" || name === "landuse" || name === "water"
+  ) {
+    return;
+  }
+
+  const poi = {
+    name,
+    longitude: event.lngLat.lng,
+    latitude: event.lngLat.lat,
+  };
+
+  setSelectedPoi(null);
+  setTimeout(() => setSelectedPoi(poi), 0);
+};
+
+
+useEffect(() => {
+  if (!mapRef.current) return;
+  const map = mapRef.current.getMap();
+
+  const enhancePOIs = () => {
+    map.getStyle().layers?.forEach((layer) => {
+      if (layer.id.includes("poi")) {
+
+        map.setLayerZoomRange(layer.id, 0, 24);
+
+        if (layer.type === "symbol") {
+          map.setLayoutProperty(layer.id, "text-size", 14); 
         }
+      }
+    });
+  };
+
+  map.on("styledata", enhancePOIs);
+  enhancePOIs();
+
+  return () => {
+    map.off("styledata", enhancePOIs);
+  };
+}, [mapStyle]);
+
+
+
+  useEffect(() => {
+  if (!mapRef.current) return;
+  const map = mapRef.current.getMap();
+
+  const updateLayers = () => {
+    const poiLayers =
+      map
+        .getStyle()
+        .layers?.filter(
+          (l) =>
+            l.id &&
+            (l.id.includes("poi") ||
+              l.id.includes("place") ||
+              l.id.includes("label"))
+        )
+        .map((l) => l.id) || [];
+
+    setInteractiveLayers(poiLayers);
+  };
+
+  map.on("styledata", updateLayers);
+  updateLayers();
+
+  return () => {
+    map.off("styledata", updateLayers);
+  };
+}, [mapStyle]);
+
+
+
+  useEffect(() => {
+  async function fetchSunTimes() {
+    if (!userLocation) return;
+
+    const res = await fetch(
+      `https://api.sunrise-sunset.org/json?lat=${userLocation.latitude}&lng=${userLocation.longitude}&formatted=0`
+    );
+    const data = await res.json();
+    const sunrise = new Date(data.results.sunrise);
+    const sunset = new Date(data.results.sunset);
+    const now = new Date();
+
+    const isNight = now < sunrise || now > sunset;
+
+    if (theme === "dark" || (theme === "auto" && isNight)) {
+      setMapStyle(
+        graphicsOn
+          ? "mapbox://styles/pkolev26/cmfcv2syg001m01r96t8xhi1q" // Dark + graphics
+          : "mapbox://styles/pkolev26/cmfct7azn007k01s319wlhwug" // Dark no graphics
+      );
+    } else {
+      setMapStyle(
+        graphicsOn
+          ? "mapbox://styles/pkolev26/cmfbm4gua005g01qucmem0odc" // Light + graphics
+          : "mapbox://styles/mapbox/streets-v12" // Light no graphics
       );
     }
-  }, []);
+  }
+
+  fetchSunTimes();
+}, [userLocation, theme, graphicsOn]); 
+
+useEffect(() => {
+  if (!mapRef.current) return;
+  const map = mapRef.current.getMap();
+
+  map.on("styledata", () => {
+    if (theme === "dark" && !graphicsOn) {
+      if (map.getLayer("building")) {
+        map.setLayoutProperty("building", "visibility", "none");
+      }
+      if (map.getLayer("3d-buildings")) {
+        map.setLayoutProperty("3d-buildings", "visibility", "none");
+      }
+    } else {
+      if (map.getLayer("building")) {
+        map.setLayoutProperty("building", "visibility", "visible");
+      }
+      if (map.getLayer("3d-buildings")) {
+        map.setLayoutProperty("3d-buildings", "visibility", graphicsOn ? "visible" : "none");
+      }
+    }
+  });
+}, [mapStyle, graphicsOn, theme]);
+
+
+
+  
+  useEffect(() => {
+  if (forceNoLocation) {
+    setUserLocation({ latitude: 42.6977, longitude: 23.3219 });
+    setViewState((prev) => ({
+      ...prev,
+      latitude: 42.6977,
+      longitude: 23.3219,
+      zoom: 14,
+    }));
+    onLoaded();
+    return;
+  }
+
+  if (navigator.permissions) {
+    navigator.permissions.query({ name: "geolocation" as PermissionName }).then((res) => {
+      const handleSuccess = (pos: GeolocationPosition) => {
+        const { latitude, longitude } = pos.coords;
+        setUserLocation({ latitude, longitude });
+        setViewState((prev) => ({
+          ...prev,
+          latitude,
+          longitude,
+          zoom: 18,
+        }));
+
+        onLoaded();
+
+        mapRef.current?.flyTo({
+          center: [longitude, latitude],
+          zoom: 18,
+          duration: 1000,
+        });
+      };
+
+      const handleError = () => {
+        const event = new CustomEvent("geolocation-denied");
+        window.dispatchEvent(event);
+      };
+
+      if (res.state === "granted") {
+        navigator.geolocation.getCurrentPosition(handleSuccess, handleError);
+      } else if (res.state === "prompt") {
+        navigator.geolocation.getCurrentPosition(handleSuccess, handleError);
+      } else if (res.state === "denied") {
+        handleError();
+      }
+    });
+  } else {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setUserLocation({ latitude, longitude });
+        setViewState((prev) => ({
+          ...prev,
+          latitude,
+          longitude,
+          zoom: 18,
+        }));
+
+        onLoaded();
+
+        mapRef.current?.flyTo({
+          center: [longitude, latitude],
+          zoom: 18,
+          duration: 1000,
+        });
+      },
+      () => {
+        const event = new CustomEvent("geolocation-denied");
+        window.dispatchEvent(event);
+      }
+    );
+  }
+}, [forceNoLocation, onLoaded]);
+
+
 
   const toggle3D = () => {
     if (!mapRef.current) return;
@@ -99,20 +326,20 @@ export default function MapWrapper() {
 
   return (
     <div className="w-screen h-screen relative">
-      <Map
-        ref={mapRef}
-        {...viewState}
-        onMove={handleMove}
-        mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
-        attributionControl={false}
-        mapStyle={
-          graphicsOn
-            ? "mapbox://styles/pkolev26/cmfbm4gua005g01qucmem0odc"
-            : "mapbox://styles/mapbox/streets-v12"
-        }
-        style={{ width: "100%", height: "100%" }}
-      >
+    <Map
+  ref={mapRef}
+  {...viewState}
+  onMove={handleMove}
+  onClick={handleClick}
+  mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
+  attributionControl={false}
+  mapStyle={mapStyle}
+  interactiveLayerIds={interactiveLayers} 
+  style={{ width: "100%", height: "100%" }}
+>
+
         <AttributionControl compact={true} position="top-left" />
+
         {userLocation && (
           <Marker
             longitude={userLocation.longitude}
@@ -122,9 +349,17 @@ export default function MapWrapper() {
           </Marker>
         )}
 
+        <CustomPopup
+          mapRef={mapRef}
+          selectedPoi={selectedPoi}
+          setSelectedPoi={setSelectedPoi}
+          setIsDialogOpen={setIsDialogOpen}
+        />
+
+
+
         <NavigationControl position="top-left" style={{ marginTop: "30px" }} />
       </Map>
-
 
       <button
         onClick={toggle3D}
@@ -154,6 +389,34 @@ export default function MapWrapper() {
           <line x1="18" y1="12" x2="22" y2="12" />
         </svg>
       </button>
+
+      <ReviewDialog
+  isOpen={isDialogOpen}
+  onClose={() => setIsDialogOpen(false)}
+  placeName={selectedPoi?.name || ""}
+  longitude={selectedPoi?.longitude || 0}
+  latitude={selectedPoi?.latitude || 0}
+  onSave={async (data) => {
+    try {
+      const res = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (res.ok) {
+        const saved = await res.json();
+        setIsDialogOpen(false);
+      } else {
+        console.error("❌ Грешка при запис:", await res.json());
+      }
+    } catch (err) {
+      console.error("❌ Network error:", err);
+    }
+  }}
+/>
+
+
     </div>
   );
 }

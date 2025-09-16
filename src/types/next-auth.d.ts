@@ -5,6 +5,11 @@ declare module "next-auth" {
     user: {
       id: string;
       email: string;
+      name?: string | null;
+      image?: string | null;
+      firstname?: string | null;
+      lastname?: string | null;
+       
     };
   }
 }
@@ -19,6 +24,11 @@ declare module "next-auth" {
 
   interface User {
     id: string;
+    firstname?: string | null;
+    lastname?: string | null;
+    email: string;
+    name?: string | null;
+    image?: string | null;
   }
 }
 
