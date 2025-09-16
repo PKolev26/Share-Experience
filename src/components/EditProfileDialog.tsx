@@ -1,10 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import Cropper from "react-easy-crop";
+import Cropper, { Area } from "react-easy-crop";
 import NextImage from "next/image";
+import { getCroppedImg } from "@/lib/cropImage";
 
-export default function EditProfileDialog({ user }: { user: any }) {
+type Props = {
+  user: {
+    name?: string;
+    email?: string;
+    firstName?: string;
+    lastName?: string;
+    image?: string | null;
+  };
+};
+
+export default function EditProfileDialog({ user }: Props) {
   const [username, setUsername] = useState(user?.name || "");
   const [email, setEmail] = useState(user?.email || "");
   const [firstName, setFirstName] = useState(user?.firstName || "");
@@ -13,7 +24,7 @@ export default function EditProfileDialog({ user }: { user: any }) {
 
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
   const [showCropper, setShowCropper] = useState(false);
   const [tempImage, setTempImage] = useState<string | null>(null);
@@ -29,33 +40,9 @@ export default function EditProfileDialog({ user }: { user: any }) {
     }
   };
 
-  const getCroppedImage = async () => {
-    const imageEl = new window.Image();
-    imageEl.src = tempImage!;
-    await new Promise((r) => (imageEl.onload = r));
-
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d")!;
-    canvas.width = croppedAreaPixels.width;
-    canvas.height = croppedAreaPixels.height;
-
-    ctx.drawImage(
-      imageEl,
-      croppedAreaPixels.x,
-      croppedAreaPixels.y,
-      croppedAreaPixels.width,
-      croppedAreaPixels.height,
-      0,
-      0,
-      croppedAreaPixels.width,
-      croppedAreaPixels.height
-    );
-
-    return canvas.toDataURL("image/jpeg");
-  };
-
   const handleCropDone = async () => {
-    const cropped = await getCroppedImage();
+    if (!tempImage || !croppedAreaPixels) return;
+    const cropped = await getCroppedImg(tempImage, croppedAreaPixels);
     setImage(cropped);
     setShowCropper(false);
   };
@@ -108,9 +95,6 @@ export default function EditProfileDialog({ user }: { user: any }) {
             className="hidden"
           />
         </div>
-
-
-
 
         {showCropper && tempImage && (
           <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
