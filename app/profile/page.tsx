@@ -1,12 +1,13 @@
 "use client";
 
 import { signOut, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 export default function ProfilePage() {
   const { data: session } = useSession();
   const user = session?.user;
-
+  const router = useRouter();
   return (
     <div className="flex flex-col items-center min-h-screen bg-gray-950 text-white p-6">
       <div className="bg-gray-900 border border-gray-800 rounded-2xl shadow-lg p-6 w-full max-w-md flex flex-col items-center">
@@ -35,7 +36,7 @@ export default function ProfilePage() {
             Edit Profile
           </button>
           <button
-            onClick={() => signOut()}
+            onClick={() => { signOut({callbackUrl: "/login"}); }}
             className="flex-1 bg-red-600 hover:bg-red-500 text-white py-2 rounded-lg transition font-medium"
           >
             Logout
