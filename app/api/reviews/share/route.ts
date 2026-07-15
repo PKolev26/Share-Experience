@@ -1,19 +1,38 @@
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
-  try {
-    const { id } = await req.json();
+  const session = await getServerSession(authOptions);
 
-    const updated = await prisma.review.update({
-      where: { id },
-      data: { isShared: true },
-    });
-
-    return Response.json({ success: true, review: updated });
-  } catch (err) {
-    console.error("Error updating review:", err);
-    return Response.json({ success: false, error: "Update failed" }, { status: 500 });
+  if (!session?.user?.id) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const { id } = await req.json();
+
+  if (!id) {
+    return Response.json({ error: "Missing review id" }, { status: 400 });
+  }
+
+  const result = await prisma.review.updateMany({
+    where: {
+      id,
+      userId: session.user.id,
+    },
+    data: {
+      isShared: true,
+    },
+  });
+
+  if (result.count === 0) {
+    return Response.json(
+      { error: "Review not found or forbidden" },
+      { status: 404 }
+    );
+  }
+
+  return Response.json({ success: true });
 }
