@@ -1,38 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Share Experience
 
-## Getting Started
+**Share Experience** е full-stack социално приложение за споделяне на преживявания и препоръки за различни места.
 
-First, run the development server:
+Проектът е разработен с **Next.js**, **TypeScript**, **React**, **PostgreSQL**, **Prisma**, **NextAuth** и **Mapbox**.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Потребителите могат да откриват места чрез интерактивна карта, да публикуват ревюта, да добавят приятели, да споделят преживявания и да комуникират чрез лични съобщения.
+
+---
+
+## За проекта
+
+Идеята на Share Experience е да комбинира откриването на интересни места със социално взаимодействие.
+
+Вместо потребителят да разчита само на анонимни оценки, приложението му позволява да:
+
+- разглежда места върху интерактивна карта;
+- публикува ревюта за посетени места;
+- оценява места от 1 до 5 звезди;
+- свързва дадено преживяване с приятели;
+- споделя ревюта;
+- вижда препоръки от хора, които познава;
+- добавя и премахва приятели;
+- комуникира с тях чрез личен чат;
+- персонализира изгледа и производителността на картата.
+
+Frontend и backend логиката са разработени в едно Next.js приложение.
+
+---
+
+## Основни функционалности
+
+### Интерактивна карта
+
+- Интеграция с Mapbox
+- Избиране на обекти и места от картата
+- 2D и 3D изглед
+- Включване и изключване на разширени графики
+- Светла, тъмна и автоматична тема
+- Автоматична смяна на темата според изгрева и залеза
+- Резервен режим при отказан достъп до местоположението
+
+### Ревюта
+
+- Създаване на ревю за избрано място
+- Оценяване от 1 до 5 звезди
+- Добавяне на коментар
+- Преглед на личната история с ревюта
+- Споделяне на ревюта
+
+---
+
+## Използвани технологии
+
+| Категория | Технология |
+|---|---|
+| Framework | Next.js 15 |
+| Език | TypeScript |
+| Frontend | React 19 |
+| Стилизация | Tailwind CSS |
+| UI компоненти | Radix UI |
+| Автентикация | NextAuth |
+| База данни | PostgreSQL |
+| ORM | Prisma |
+| Карти | Mapbox GL |
+| React интеграция за карти | React Map GL |
+| Хеширане на пароли | bcrypt |
+| Deployment | Vercel |
+
+---
+
+
+## Структура на проекта
+
+```text
+Share-Experience/
+├── app/
+│   ├── api/                  # Backend API маршрути
+│   ├── chat/                 # Страници за чат
+│   ├── feed/                 # Feed със споделени ревюта
+│   ├── friends/              # Управление на приятели
+│   ├── login/                # Страница за вход
+│   ├── profile/              # Потребителски профил
+│   ├── register/             # Страница за регистрация
+│   ├── reviews/              # Лични ревюта
+│   ├── layout.tsx            # Основен layout
+│   └── page.tsx              # Начална страница с карта
+│
+├── prisma/
+│   └── schema.prisma         # Prisma схема
+│
+├── src/
+│   ├── components/           # React компоненти
+│   ├── contexts/             # React Context-и и настройки
+│   └── lib/                  # Автентикация и обща логика
+│
+├── public/                   # Статични файлове и изображения
+├── package.json
+├── tsconfig.json
+└── README.md
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Демо
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-# Share-Experience
+🌐 [Отвори приложението](https://share-experience.vercel.app/)
