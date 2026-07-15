@@ -20,7 +20,8 @@ export default function Login() {
     });
 
     if (res?.ok) {
-      router.push("/");
+      router.replace("/");
+      router.refresh();
     } else {
       alert("Invalid credentials");
     }

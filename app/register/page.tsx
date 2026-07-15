@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Mail, Lock, User } from "lucide-react";
 import { X } from "lucide-react";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 
 export default function Register() {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -12,12 +13,35 @@ export default function Register() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch("/api/register", {
+
+    const registerResponse = await fetch("/api/register", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify(form),
     });
-    router.push("/login");
+
+    const data = await registerResponse.json();
+
+    if (!registerResponse.ok) {
+      alert(data.error || "Registration failed");
+      return;
+    }
+
+    const loginResponse = await signIn("credentials", {
+      email: form.email,
+      password: form.password,
+      redirect: false,
+    });
+
+    if (!loginResponse?.ok) {
+      router.replace("/login");
+      return;
+    }
+
+    router.replace("/");
+    router.refresh();
   };
 
   return (
